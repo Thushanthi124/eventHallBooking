@@ -1,0 +1,134 @@
+/* src/pages/Auth.css */
+.auth-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #4D0000 0%, #800000 100%);
+    font-family: 'Outfit', sans-serif;
+    padding: 20px;
+}
+
+.auth-card {
+    background: white;
+    padding: 3rem;
+    border-radius: 20px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    width: 100%;
+    max-width: 450px;
+    animation: slideUp 0.6s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.auth-header h1 {
+    font-family: 'Playfair Display', serif;
+    color: #4D0000;
+    font-size: 2.2rem;
+    margin-bottom: 0.5rem;
+}
+
+.auth-header p {
+    color: #6B7280;
+    font-size: 0.95rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.9rem;
+}
+
+.form-input {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    border: 1px solid #D1D5DB;
+    border-radius: 10px;
+    font-size: 1rem;
+    transition: all 0.3s;
+    font-family: inherit;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #800000;
+    box-shadow: 0 0 0 3px rgba(128, 0, 0, 0.1);
+}
+
+.auth-btn {
+    width: 100%;
+    padding: 1rem;
+    background: #800000;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.auth-btn:hover {
+    background: #4D0000;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(77, 0, 0, 0.2);
+}
+
+.auth-footer {
+    text-align: center;
+    margin-top: 2rem;
+    color: #6B7280;
+    font-size: 0.9rem;
+}
+
+.auth-footer a {
+    color: #800000;
+    text-decoration: none;
+    font-weight: 700;
+}
+
+.auth-footer a:hover {
+    text-decoration: underline;
+}
+
+.demo-box {
+    background: #FFFBEB;
+    border: 1px solid #FEF3C7;
+    padding: 1rem;
+    border-radius: 10px;
+    margin-bottom: 2rem;
+    font-size: 0.85rem;
+}
+
+.demo-title {
+    color: #92400E;
+    font-weight: 800;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}

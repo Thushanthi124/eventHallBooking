@@ -1,0 +1,261 @@
+/* src/pages/HallDetails.css */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Playfair+Display:ital,wght@0,700;1,700&display=swap');
+
+:root {
+    --maroon-deep: #4D0000;
+    --maroon-bright: #800000;
+    --gold: #D4AF37;
+    --cream: #FFFDF5;
+    --text-dark: #1F2937;
+    --text-muted: #6B7280;
+}
+
+.hall-details-page {
+    min-height: 100vh;
+    background-color: var(--cream);
+    font-family: 'Outfit', sans-serif;
+    color: var(--text-dark);
+}
+
+.details-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 4rem;
+    background: var(--maroon-deep);
+    border-bottom: 2px solid var(--gold);
+}
+
+.back-button {
+    background: transparent;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    padding: 0.6rem 1.2rem;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.back-button:hover {
+    background: var(--gold);
+    color: var(--maroon-deep);
+}
+
+.logo-small {
+    margin: 0;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    color: white;
+}
+
+.logo-small span {
+    color: var(--gold);
+}
+
+.details-container {
+    max-width: 1200px;
+    margin: 4rem auto;
+    padding: 0 2rem;
+}
+
+.details-layout {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 4rem;
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
+}
+
+.details-visual {
+    background: linear-gradient(135deg, var(--maroon-bright), var(--maroon-deep));
+    position: relative;
+    /* Ensure relative positioning for child elements */
+}
+
+.details-real-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.details-image-placeholder {
+    height: 100%;
+    min-height: 500px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 5rem;
+    font-family: 'Playfair Display', serif;
+    color: var(--gold);
+    position: relative;
+}
+
+.image-overlay {
+    position: absolute;
+    bottom: 2rem;
+    left: 0;
+    right: 0;
+    text-align: center;
+}
+
+.image-overlay span {
+    background: rgba(212, 175, 55, 0.2);
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    padding: 0.5rem 1.5rem;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.details-info {
+    padding: 3.5rem;
+}
+
+.details-category {
+    text-transform: uppercase;
+    color: var(--gold);
+    font-weight: 700;
+    letter-spacing: 3px;
+    font-size: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.details-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 3rem;
+    color: var(--maroon-deep);
+    margin-bottom: 2rem;
+}
+
+.details-stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2.5rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid #eee;
+}
+
+.detail-stat {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 0.3rem;
+}
+
+.stat-value {
+    font-size: 1.25rem;
+    color: var(--maroon-bright);
+    font-weight: 600;
+}
+
+.details-description h3,
+.details-amenities h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    color: var(--maroon-deep);
+    margin-bottom: 1rem;
+}
+
+.details-description p {
+    color: var(--text-muted);
+    line-height: 1.8;
+    margin-bottom: 2.5rem;
+}
+
+.amenities-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8rem;
+    margin-bottom: 3rem;
+}
+
+.amenities-grid span {
+    color: var(--text-dark);
+    font-size: 0.9rem;
+}
+
+.book-now-btn {
+    width: 100%;
+    padding: 1.2rem;
+    background: var(--maroon-deep);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 10px 20px rgba(77, 0, 0, 0.2);
+}
+
+.book-now-btn:hover {
+    background: var(--maroon-bright);
+    transform: translateY(-3px);
+    box-shadow: 0 15px 30px rgba(77, 0, 0, 0.3);
+}
+
+.details-footer {
+    padding: 3rem 4rem;
+    background: #f9f9f9;
+    border-top: 1px solid #eee;
+}
+
+.footer-mini {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.login-options a {
+    color: var(--maroon-bright);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.login-options a:hover {
+    text-decoration: underline;
+}
+
+.details-loading,
+.details-error {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Playfair Display', serif;
+    color: var(--maroon-deep);
+}
+
+.back-btn-simple {
+    margin-top: 1rem;
+    color: var(--gold);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+@media (max-width: 968px) {
+    .details-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .details-visual {
+        min-height: 300px;
+    }
+}

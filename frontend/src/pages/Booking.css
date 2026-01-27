@@ -1,32 +1,65 @@
 /* src/pages/Booking.css */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Playfair+Display:ital,wght@0,700;1,700&display=swap');
+
 .booking-container {
   min-height: 100vh;
-  background: #f5f7fa;
+  background-color: #f8fafc;
+  font-family: 'Outfit', sans-serif;
 }
 
-.booking-form-container {
-  max-width: 800px;
-  margin: 2rem auto;
-  padding: 2rem;
+/* Wizard Header/Progress */
+.booking-wizard {
+  max-width: 900px;
+  margin: 4rem auto;
   background: white;
-  border-radius: 10px;
-  box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+  border-radius: 24px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
 }
 
-.booking-form-container h2 {
-  text-align: center;
-  color: #2c3e50;
-  margin-bottom: 2rem;
-  font-size: 2rem;
-}
-
-.booking-form {
+.wizard-progress {
   display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2rem 4rem;
+  background: #f1f5f9;
+  border-bottom: 1px solid #e2e8f0;
 }
 
-.form-row {
+.step-node {
+  font-weight: 700;
+  color: #94a3b8;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s;
+}
+
+.step-node.active {
+  color: #800000;
+}
+
+.step-line {
+  flex: 1;
+  height: 2px;
+  background: #e2e8f0;
+  margin: 0 1.5rem;
+}
+
+/* Step Views */
+.wizard-content {
+  padding: 3rem 4rem;
+}
+
+.step-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.5rem;
+  color: #4d0000;
+  margin-bottom: 2rem;
+}
+
+.form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1.5rem;
@@ -38,113 +71,566 @@
 }
 
 .form-group label {
+  font-size: 0.85rem;
+  color: #64748b;
   margin-bottom: 0.5rem;
-  font-weight: 600;
-  color: #2c3e50;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 700;
 }
 
 .form-group input,
 .form-group select,
 .form-group textarea {
-  padding: 0.8rem;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 1rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
   font-family: inherit;
+  font-size: 1rem;
+  transition: all 0.2s;
 }
 
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
+.form-group input:focus {
+  border-color: #800000;
   outline: none;
-  border-color: #3498db;
-  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+  box-shadow: 0 0 0 3px rgba(128, 0, 0, 0.1);
 }
 
-.form-summary {
-  background: #f8f9fa;
-  padding: 1.5rem;
-  border-radius: 8px;
+.error-msg {
+  color: #ef4444;
+  font-size: 0.75rem;
+  margin-top: 5px;
+}
+
+.wizard-btn {
+  margin-top: 2rem;
+  padding: 1rem 2.5rem;
+  background: #800000;
+  color: white;
+  border: none;
+  border-radius: 50px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.wizard-btn:hover {
+  background: #4d0000;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(128, 0, 0, 0.2);
+}
+
+.wizard-btn.secondary {
+  background: #94a3b8;
+}
+
+.wizard-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+/* Summary Styles */
+.summary-board {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  background: #fffdf5;
+  padding: 2rem;
+  border-radius: 20px;
+  border: 1px solid #fde68a;
+}
+
+.summary-section h3,
+.pricing-board h3 {
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  color: #800000;
+  border-bottom: 1px solid #fde68a;
+  padding-bottom: 0.5rem;
+}
+
+.summary-row,
+.price-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.8rem;
+  font-size: 0.95rem;
+}
+
+.price-total {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 2px dashed #fde68a;
+  display: flex;
+  justify-content: space-between;
+  font-weight: 800;
+  font-size: 1.25rem;
+  color: #4d0000;
+}
+
+/* Payment View */
+.step-view.center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.payment-security {
+  font-size: 0.75rem;
+  color: #059669;
+  font-weight: 700;
+  background: #d1fae5;
+  padding: 4px 12px;
+  border-radius: 50px;
+  margin-bottom: 1rem;
+}
+
+.payment-amount {
+  font-size: 3rem;
+  font-weight: 800;
+  color: #111827;
   margin: 1rem 0;
 }
 
-.form-summary h3 {
-  margin-top: 0;
-  color: #2c3e50;
-}
-
-.submit-btn {
-  background: #27ae60;
+.credit-card {
+  width: 400px;
+  height: 240px;
+  background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+  border-radius: 20px;
+  padding: 2rem;
   color: white;
-  border: none;
-  padding: 1rem 2rem;
-  font-size: 1.1rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: background 0.3s;
+  text-align: left;
+  position: relative;
+  margin: 2rem 0;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
 }
 
-.submit-btn:hover {
-  background: #219955;
+.bank-chip {
+  width: 60px;
+  height: 45px;
+  background: linear-gradient(135deg, #fbbf24, #d97706);
+  border-radius: 8px;
 }
 
-/* Navbar styles same as Home */
-.navbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 2rem;
-  background: #2c3e50;
-  color: white;
+.card-number {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 1.5rem;
+  letter-spacing: 2px;
+  margin: 2.5rem 0;
 }
 
-.logo {
-  margin: 0;
-  font-size: 1.8rem;
-  color: #3498db;
-}
-
-.nav-center {
+.card-info {
   display: flex;
   gap: 2rem;
 }
 
-.nav-link {
+.card-info label {
+  font-size: 0.6rem;
+  color: #6b7280;
+  display: block;
+}
+
+.pay-now-btn {
+  width: 100%;
+  padding: 1.2rem;
+  background: #059669;
   color: white;
-  text-decoration: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  transition: background 0.3s;
-}
-
-.nav-link:hover, .nav-link.active {
-  background: #3498db;
-}
-
-.nav-right {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-}
-
-.logout-btn {
-  padding: 0.5rem 1.5rem;
   border: none;
-  border-radius: 4px;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 1.1rem;
   cursor: pointer;
-  font-weight: bold;
-  background: #e74c3c;
-  color: white;
+  transition: all 0.3s;
 }
 
-@media (max-width: 768px) {
-  .form-row {
-    grid-template-columns: 1fr;
-  }
-  
-  .booking-form-container {
-    margin: 1rem;
-    padding: 1.5rem;
-  }
+.pay-now-btn:hover {
+  background: #047857;
+  transform: translateY(-2px);
+}
+
+/* Calendar Wrapper */
+.calendar-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.react-datepicker {
+  font-family: 'Outfit', sans-serif !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+  padding: 0.5rem !important;
+  /* Reduced padding */
+  font-size: 0.8rem !important;
+  /* Base font reduction */
+}
+
+.react-datepicker__header {
+  background-color: white !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  padding: 5px 0 !important;
+  /* Reduced header padding */
+}
+
+.react-datepicker__current-month {
+  color: #800000 !important;
+  font-weight: 700 !important;
+  font-size: 1rem !important;
+  /* Smaller month title */
+  margin-bottom: 0.2rem !important;
+}
+
+.react-datepicker__day-name {
+  color: #94a3b8 !important;
+  font-weight: 600 !important;
+  width: 2rem !important;
+  /* Smaller day name width */
+  line-height: 2rem !important;
+  font-size: 0.8rem !important;
+}
+
+.react-datepicker__day {
+  margin: 0.1rem !important;
+  /* Tighter margins */
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+  width: 2rem !important;
+  /* Smaller day cells */
+  line-height: 2rem !important;
+  font-size: 0.9rem !important;
+  transition: all 0.2s !important;
+}
+
+.react-datepicker__day:hover {
+  background-color: #fce7f3 !important;
+  color: #800000 !important;
+}
+
+.react-datepicker__day--selected,
+.react-datepicker__day--keyboard-selected,
+.react-datepicker__day:focus {
+  background-color: #2563eb !important;
+  color: white !important;
+  font-weight: 800 !important;
+}
+
+/* Availability Colors */
+.calendar-day-full {
+  background-color: #ef4444 !important;
+  color: white !important;
+  text-decoration: line-through;
+  cursor: not-allowed !important;
+}
+
+.calendar-day-partial {
+  background-color: #ffedd5 !important;
+  color: #d97706 !important;
+  border: 1px solid #fed7aa !important;
+}
+
+.calendar-day-available {
+  background-color: #f0fdf4 !important;
+  color: #15803d !important;
+}
+
+/* Slot Selector */
+.slot-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.slot-option {
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: white;
+  position: relative;
+}
+
+.slot-option:hover {
+  border-color: #800000;
+  transform: translateY(-2px);
+}
+
+.slot-option.selected {
+  border-color: #800000;
+  background-color: #fff5f5;
+  box-shadow: 0 4px 12px rgba(128, 0, 0, 0.1);
+}
+
+.slot-option.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.slot-option.disabled:hover {
+  transform: none;
+  border-color: #cbd5e1;
+}
+
+.slot-name {
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 4px;
+}
+
+.slot-time {
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.slot-badge {
+  position: absolute;
+  top: -10px;
+  right: 10px;
+  background: #ef4444;
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 20px;
+  text-transform: uppercase;
+}
+
+.full-width {
+  grid-column: span 2;
+}
+
+/* Venue/Hall Selection Cards */
+.halls-selection-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-top: 0.5rem;
+}
+
+.hall-option-card {
+  border: 2px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1.5rem;
+  cursor: pointer;
+  background: white;
+  transition: all 0.2s;
+}
+
+.hall-option-card:hover {
+  transform: translateY(-2px);
+  border-color: #800000;
+}
+
+.hall-option-card.selected {
+  border-color: #800000;
+  background-color: #fff5f5;
+  box-shadow: 0 10px 20px rgba(128, 0, 0, 0.1);
+}
+
+.hall-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.hall-name {
+  font-weight: 800;
+  color: #1e293b;
+  font-size: 1.1rem;
+}
+
+.hall-price {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #800000;
+  background: #fef2f2;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.hall-card-details {
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+/* Food Package Cards */
+.food-packages-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.food-package-card {
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.5rem;
+  cursor: pointer;
+  background: white;
+  text-align: center;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.food-package-card:hover {
+  border-color: #059669;
+  transform: translateY(-2px);
+}
+
+.food-package-card.selected {
+  border-color: #059669;
+  background-color: #ecfdf5;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.1);
+}
+
+.pkg-name {
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+}
+
+.pkg-price {
+  color: #059669;
+  font-weight: 800;
+}
+
+.pkg-hover-hint {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  margin-top: 1rem;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.food-package-card:hover .pkg-hover-hint {
+  opacity: 1;
+}
+
+/* Hover Tooltip for Food Menu */
+.pkg-menu-tooltip {
+  position: absolute;
+  top: 105%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.5rem;
+  width: 280px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  z-index: 100;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+  text-align: left;
+}
+
+.food-package-card:hover .pkg-menu-tooltip {
+  opacity: 1;
+  visibility: visible;
+  top: 95%;
+}
+
+.pkg-menu-tooltip::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 8px solid white;
+}
+
+.pkg-menu-tooltip strong {
+  display: block;
+  color: #800000;
+  margin-bottom: 0.8rem;
+  font-size: 0.95rem;
+  font-family: 'Playfair Display', serif;
+  border-bottom: 1px dashed #cbd5e1;
+  padding-bottom: 0.5rem;
+}
+
+.pkg-menu-tooltip ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.pkg-menu-tooltip li {
+  font-size: 0.8rem;
+  color: #475569;
+  position: relative;
+  padding-left: 12px;
+  line-height: 1.4;
+}
+
+.pkg-menu-tooltip li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 6px;
+  width: 4px;
+  height: 4px;
+  background: #059669;
+  border-radius: 50%;
+}
+
+/* Make Whole Day slot span full width in the 2-column grid */
+.slot-option.full-width {
+  grid-column: span 2;
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.slot-option.full-width.selected {
+  background-color: #fff5f5;
+  border-color: #800000;
+}
+
+/* Enforce disabled state visuals for past dates */
+.react-datepicker__day--disabled {
+  background-color: #f1f5f9 !important;
+  color: #cbd5e1 !important;
+  border: none !important;
+  cursor: not-allowed !important;
+  text-decoration: none !important;
+  opacity: 0.6 !important;
+}
+
+/* Enhance hall card with image background support */
+.hall-option-card {
+  position: relative;
+  overflow: hidden;
+  /* Ensure text shadow for readability */
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+.hall-option-card.selected {
+  /* Add gold border for selected state when using images */
+  border: 3px solid #fbbf24 !important;
+  /* Gold border */
+  box-shadow: 0 0 0 5px rgba(251, 191, 36, 0.3) !important;
+}
+
+/* Ensure the price tag remains clear */
+.hall-price {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-weight: 800 !important;
+  text-shadow: none !important;
+  /* Reset shadow for text inside white bg pill */
 }

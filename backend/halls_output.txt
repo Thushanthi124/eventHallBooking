@@ -1,0 +1,20 @@
+Beginning Hall Diagnosis...
+Found 3 halls.
+
+Scanning Hall #1 (ID: 1)...
+  Name: Grand Ballroom
+  Image: /halls/grand_ballroom.png
+  Price: 150000.00 (Type: <class 'decimal.Decimal'>)
+  Serialization: OK
+
+Scanning Hall #2 (ID: 2)...
+  Name: Nadsathira Hall
+  Image: /halls/sapphire_hall.png
+  Price: 80000.00 (Type: <class 'decimal.Decimal'>)
+  Serialization: OK
+
+Scanning Hall #3 (ID: 3)...
+  Name: Jade Garden
+  Image: /halls/jade_garden.jpg
+  Price: 60000.00 (Type: <class 'decimal.Decimal'>)
+  Serialization: OK

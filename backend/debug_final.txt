@@ -1,0 +1,9 @@
+{
+  "password_len": 29,
+  "password_prefix": "ibx",
+  "port": 587,
+  "sender": "thushy04.01@gmail.com",
+  "server": "smtp.gmail.com",
+  "use_tls": true,
+  "username": "thushy04.01@gmail.com"
+}

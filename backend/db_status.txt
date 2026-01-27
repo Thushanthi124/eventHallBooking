@@ -1,0 +1,58 @@
+Total Users: 8
+--------------------------------------------------
+ID: 1
+Username: admin
+Email: admin@example.com
+Role: admin
+Verified: True
+Token: NONE
+--------------------------------------------------
+ID: 2
+Username: customer
+Email: customer@example.com
+Role: customer
+Verified: True
+Token: NONE
+--------------------------------------------------
+ID: 3
+Username: Dilaxana
+Email: dilax0006@gmail.com
+Role: customer
+Verified: True
+Token: 0fd69a65-132b-403e-acba-dde78422b9f1
+--------------------------------------------------
+ID: 4
+Username: thushy
+Email: thushy0412@gmail.com
+Role: customer
+Verified: False
+Token: d7ad5ebc-26f0-45ee-9e5d-2f20dc2a8fa8
+--------------------------------------------------
+ID: 5
+Username: thusy
+Email: thusy0412@gmail.com
+Role: customer
+Verified: False
+Token: 37272034-e351-4f05-a9c4-dedf2e807574
+--------------------------------------------------
+ID: 6
+Username: Thushan
+Email: thushy04.01@gmail.com
+Role: customer
+Verified: True
+Token: NONE
+--------------------------------------------------
+ID: 27
+Username: maka
+Email: rehovaj913@gxuzi.com
+Role: customer
+Verified: True
+Token: NONE
+--------------------------------------------------
+ID: 28
+Username: makatu
+Email: notic18797@gamening.com
+Role: customer
+Verified: True
+Token: NONE
+--------------------------------------------------

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f6f6f6; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 0 auto; background: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .header { text-align: center; padding: 20px 0; border-bottom: 2px solid #800000; }
+        .header h1 { color: #800000; margin: 0; font-family: 'Playfair Display', serif; }
+        .content { padding: 30px 20px; color: #333333; line-height: 1.6; }
+        .details-box { background-color: #f9f9f9; padding: 15px; border-radius: 4px; margin: 20px 0; border-left: 4px solid #800000; }
+        .footer { text-align: center; font-size: 12px; color: #999999; margin-top: 30px; }
+        .btn { display: inline-block; background-color: #800000; color: #ffffff; text-decoration: none; padding: 10px 20px; border-radius: 4px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Nadsathira Mahal</h1>
+        </div>
+        <div class="content">
+            <h2>Booking Confirmed!</h2>
+            <p>Dear {{ user_name }},</p>
+            <p>We are delighted to confirm your reservation at Nadsathira Mahal. Your special day is secured!</p>
+            
+            <div class="details-box">
+                <p><strong>Venue:</strong> {{ hall_name }}</p>
+                <p><strong>Date:</strong> {{ event_date }}</p>
+                <p><strong>Time:</strong> {{ start_time }} - {{ end_time }}</p>
+                <p><strong>Guests:</strong> {{ guests }}</p>
+            </div>
+            
+            <p>Our team looks forward to hosting your event. If you have any further requirements, please do not hesitate to contact us.</p>
+            
+            <center><a href="http://localhost:5173/dashboard" class="btn">View Booking Details</a></center>
+        </div>
+        <div class="footer">
+            &copy; 2026 Nadsathira Mahal. All rights reserved.<br>
+            Luxury Event Venue
+        </div>
+    </div>
+</body>
+</html>

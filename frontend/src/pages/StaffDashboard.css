@@ -1,0 +1,119 @@
+/* src/pages/StaffDashboard.css */
+.staff-container {
+    display: flex;
+    min-height: 100vh;
+    background-color: #f3f4f6;
+    font-family: 'Outfit', sans-serif;
+}
+
+.staff-sidebar {
+    width: 280px;
+    background: #1f2937;
+    color: white;
+    padding: 2rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    height: 100vh;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.staff-logo {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin-bottom: 3rem;
+    color: #fbbf24;
+}
+
+.staff-main {
+    flex: 1;
+    margin-left: 280px;
+    padding: 3rem;
+}
+
+.staff-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 3rem;
+}
+
+.assignment-card {
+    background: white;
+    border-radius: 15px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    border-left: 5px solid #fbbf24;
+    transition: transform 0.2s;
+}
+
+.assignment-card:hover {
+    transform: translateX(5px);
+}
+
+.assignment-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin: 1.5rem 0;
+}
+
+.detail-node {
+    display: flex;
+    flex-direction: column;
+}
+
+.node-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: #6b7280;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.25rem;
+}
+
+.node-value {
+    font-weight: 600;
+    color: #111827;
+}
+
+.status-toggle {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #f3f4f6;
+}
+
+.btn-complete {
+    background: #059669;
+    color: white;
+    border: none;
+    padding: 0.6rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.status-indicator {
+    padding: 0.4rem 1rem;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.status-completed {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.status-pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-in_progress {
+    background: #dbeafe;
+    color: #1e40af;
+}
