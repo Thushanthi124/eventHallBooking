@@ -1,6 +1,6 @@
 from flask import jsonify, request, current_app
 from functools import wraps
-from itsdangerous import URLSafeTimedSerializer
+from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 from app.models import User
 
 # Pivot: Using itsdangerous for token verification (Dependency-free JWT alternative)
@@ -16,8 +16,12 @@ def verify_token_in_request():
         # Max age 1 day (86400 seconds)
         user_id = s.loads(token, salt='access-token', max_age=86400)
         return user_id
-    except Exception:
-        raise Exception('Invalid or expired token')
+    except SignatureExpired:
+        raise Exception('Token has expired. Please log in again.')
+    except BadSignature:
+        raise Exception('Invalid token signature. Please log in again.')
+    except Exception as e:
+        raise Exception(f'Token validation error: {str(e)}')
 
 def token_required(f):
     @wraps(f)

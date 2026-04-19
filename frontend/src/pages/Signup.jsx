@@ -168,7 +168,6 @@ const Signup = () => {
                         >
                             <option value="customer">A Customer</option>
                             <option value="staff">Operational Staff</option>
-                            <option value="admin">An Administrator</option>
                         </select>
                     </div>
 
@@ -188,8 +187,8 @@ const Signup = () => {
                         <Link to="/" style={{ color: '#6B7280', fontWeight: '400' }}>← Back to Home</Link>
                     </div>
                 </div>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 };
 

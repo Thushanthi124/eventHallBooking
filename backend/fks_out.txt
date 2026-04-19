@@ -1,0 +1,8 @@
+Table: bookings, Column: user_id, Constraint: bookings_ibfk_1, Refs: users.id
+Table: bookings, Column: hall_id, Constraint: bookings_ibfk_2, Refs: halls.id
+Table: feedback, Column: booking_id, Constraint: feedback_ibfk_1, Refs: bookings.id
+Table: feedback, Column: user_id, Constraint: feedback_ibfk_2, Refs: users.id
+Table: halls, Column: owner_id, Constraint: fk_hall_owner, Refs: hall_owners.owner_id
+Table: payments, Column: booking_id, Constraint: payments_ibfk_1, Refs: bookings.id
+Table: staff_assignments, Column: booking_id, Constraint: staff_assignments_ibfk_1, Refs: bookings.id
+Table: staff_assignments, Column: user_id, Constraint: staff_assignments_ibfk_2, Refs: users.id

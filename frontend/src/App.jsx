@@ -20,6 +20,7 @@ import AdminHistory from './pages/AdminHistory';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import PaymentSuccess from './pages/PaymentSuccess';
+import AdminMessages from './pages/AdminMessages';
 import './App.css';
 
 function App() {
@@ -82,6 +83,12 @@ function App() {
             <Route path="/admin/feedback" element={
               <RoleProtectedRoute allowedRoles={['admin']}>
                 <AdminFeedback />
+              </RoleProtectedRoute>
+            } />
+            
+            <Route path="/admin/messages" element={
+              <RoleProtectedRoute allowedRoles={['admin']}>
+                <AdminMessages />
               </RoleProtectedRoute>
             } />
           </Route>

@@ -16,6 +16,11 @@ const AdminHistory = () => {
     const [startDate, setStartDate] = useState(null);
     const [endDate, setEndDate] = useState(null);
 
+    const [selectedBooking, setSelectedBooking] = useState(null);
+    const [showMessageForm, setShowMessageForm] = useState(false);
+    const [messageText, setMessageText] = useState('');
+    const [sending, setSending] = useState(false);
+
     useEffect(() => {
         fetchBookings();
     }, []);
@@ -93,6 +98,40 @@ const AdminHistory = () => {
         setEndDate(null);
     };
 
+    const handleSendMessage = async () => {
+        if (!messageText.trim()) return;
+        setSending(true);
+        try {
+            const token = localStorage.getItem('userToken');
+            const payload = {
+                user_id: selectedBooking.user_id,
+                booking_id: selectedBooking.id,
+                message: messageText
+            };
+            const response = await fetch('http://127.0.0.1:5000/api/admin/notifications', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                alert("Message sent to customer successfully.");
+                setShowMessageForm(false);
+                setMessageText('');
+            } else {
+                alert("Failed to send message.");
+            }
+        } catch (error) {
+            console.error(error);
+            alert("Error sending message.");
+        } finally {
+            setSending(false);
+        }
+    };
+
     return (
         <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
             <div style={{ marginBottom: '2rem' }}>
@@ -135,6 +174,7 @@ const AdminHistory = () => {
                         <option value="confirmed">Confirmed</option>
                         <option value="completed">Completed</option>
                         <option value="rejected">Rejected</option>
+                        <option value="cancelled">Cancelled</option>
                         <option value="pending">Pending</option>
                     </select>
                 </div>
@@ -189,12 +229,13 @@ const AdminHistory = () => {
                                 <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.875rem', color: '#6b7280' }}>Event Date</th>
                                 <th style={{ padding: '1rem', textAlign: 'left', fontSize: '0.875rem', color: '#6b7280' }}>Status</th>
                                 <th style={{ padding: '1rem', textAlign: 'right', fontSize: '0.875rem', color: '#6b7280' }}>Amount</th>
+                                <th style={{ padding: '1rem', textAlign: 'center', fontSize: '0.875rem', color: '#6b7280' }}>Action</th>
                             </tr>
                         </thead>
                         <tbody>
                             {filteredBookings.map((booking) => (
                                 <tr key={booking.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                                    <td style={{ padding: '1rem', color: '#9ca3af', fontFamily: 'monospace' }}>#{booking.id}</td>
+                                    <td style={{ padding: '1rem', color: '#9ca3af', fontFamily: 'monospace' }}>{booking.id}</td>
                                     <td style={{ padding: '1rem', fontWeight: 600, color: '#1f2937' }}>{booking.hall_name}</td>
                                     <td style={{ padding: '1rem' }}>
                                         <div style={{ color: '#1f2937' }}>{booking.user_name}</div>
@@ -209,14 +250,31 @@ const AdminHistory = () => {
                                             borderRadius: '9999px',
                                             fontSize: '0.75rem',
                                             fontWeight: 600,
-                                            background: booking.status === 'confirmed' ? '#d1fae5' : booking.status === 'rejected' ? '#fee2e2' : '#f3f4f6',
-                                            color: booking.status === 'confirmed' ? '#065f46' : booking.status === 'rejected' ? '#991b1b' : '#374151'
+                                            background: booking.status === 'confirmed' ? '#d1fae5' : (booking.status === 'rejected' || booking.status === 'cancelled') ? '#fee2e2' : '#f3f4f6',
+                                            color: booking.status === 'confirmed' ? '#065f46' : (booking.status === 'rejected' || booking.status === 'cancelled') ? '#991b1b' : '#374151'
                                         }}>
                                             {booking.status.toUpperCase()}
                                         </span>
                                     </td>
                                     <td style={{ padding: '1rem', textAlign: 'right', fontWeight: 600, color: '#111827' }}>
                                         LKR {booking.total_price?.toLocaleString()}
+                                    </td>
+                                    <td style={{ padding: '1rem', textAlign: 'center' }}>
+                                        <button 
+                                            onClick={() => setSelectedBooking(booking)}
+                                            style={{
+                                                padding: '0.4rem 0.8rem',
+                                                background: '#4D0000',
+                                                color: 'white',
+                                                borderRadius: '6px',
+                                                border: 'none',
+                                                cursor: 'pointer',
+                                                fontSize: '0.75rem',
+                                                fontWeight: 600
+                                            }}
+                                        >
+                                            View
+                                        </button>
                                     </td>
                                 </tr>
                             ))}
@@ -228,6 +286,57 @@ const AdminHistory = () => {
                     <div style={{ fontSize: '3rem', marginBottom: '1rem', opacity: 0.3 }}>🕵️‍♀️</div>
                     <h3 style={{ color: '#374151' }}>No past bookings found</h3>
                     <p style={{ color: '#6b7280' }}>Try adjusting your filters.</p>
+                </div>
+            )}
+
+            {/* View Details / Message Modal */}
+            {selectedBooking && (
+                <div className="modal-overlay" onClick={() => { setSelectedBooking(null); setShowMessageForm(false); setMessageText(''); }} style={{position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000}}>
+                    <div onClick={(e) => e.stopPropagation()} style={{background: 'white', padding: '2rem', borderRadius: '12px', width: '500px', maxWidth: '90%', maxHeight: '90vh', overflowY: 'auto'}}>
+                        <h2 style={{borderBottom: '1px solid #eee', paddingBottom: '0.5rem', marginBottom: '1rem'}}>Booking Details</h2>
+                        
+                        <div style={{display: 'flex', flexDirection: 'column', gap: '0.8rem', marginBottom: '1.5rem', color: '#374151', fontSize: '0.9rem'}}>
+                            <div><strong>ID:</strong> {selectedBooking.id}</div>
+                            <div><strong>Hall:</strong> {selectedBooking.hall_name}</div>
+                            <div><strong>Customer:</strong> {selectedBooking.user_name} ({selectedBooking.user_email})</div>
+                            <div><strong>Event Date:</strong> {new Date(selectedBooking.event_date).toLocaleDateString()}</div>
+                            <div><strong>Time Slot:</strong> {selectedBooking.start_time} - {selectedBooking.end_time}</div>
+                            <div><strong>Status:</strong> <span style={{textTransform: 'uppercase', fontWeight: 'bold'}}>{selectedBooking.status}</span></div>
+                            <div><strong>Guests:</strong> {selectedBooking.guests}</div>
+                            <div><strong>Payment Status:</strong> <span style={{textTransform: 'uppercase', color: selectedBooking.payment_status === 'refunded' ? '#d97706' : selectedBooking.payment_status === 'non-refundable' ? '#991b1b' : 'inherit'}}>{selectedBooking.payment_status}</span></div>
+                            <div><strong>Total Price:</strong> LKR {selectedBooking.total_price?.toLocaleString()}</div>
+                            {selectedBooking.custom_preferences && (
+                                <div><strong>Preferences:</strong> {selectedBooking.custom_preferences}</div>
+                            )}
+                        </div>
+
+                        {!showMessageForm ? (
+                            <div style={{display: 'flex', justifyContent: 'flex-end', gap: '1rem', borderTop: '1px solid #eee', paddingTop: '1rem'}}>
+                                <button onClick={() => { setSelectedBooking(null); setShowMessageForm(false); }} style={{background: 'none', border: '1px solid #d1d5db', color: '#374151', padding: '0.5rem 1rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 600}}>Close</button>
+                                <button onClick={() => setShowMessageForm(true)} style={{background: '#4D0000', color: 'white', padding: '0.5rem 1rem', borderRadius: '6px', border: 'none', cursor: 'pointer', fontWeight: 600}}>
+                                    Message Customer
+                                </button>
+                            </div>
+                        ) : (
+                            <div style={{background: '#f9fafb', padding: '1rem', borderRadius: '8px', border: '1px solid #e5e7eb'}}>
+                                <h3 style={{fontSize: '1rem', marginBottom: '0.5rem', color: '#111827'}}>Send a Message</h3>
+                                <p style={{marginBottom: '1rem', color: '#666', fontSize: '0.85rem'}}>Direct notification to <strong>{selectedBooking.user_name}</strong>.</p>
+                                <textarea
+                                    rows="4"
+                                    value={messageText}
+                                    onChange={(e) => setMessageText(e.target.value)}
+                                    placeholder="Type your notification message here..."
+                                    style={{width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #d1d5db', marginBottom: '1rem', fontFamily: 'inherit'}}
+                                />
+                                <div style={{display: 'flex', justifyContent: 'flex-end', gap: '1rem'}}>
+                                    <button onClick={() => setShowMessageForm(false)} style={{background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontWeight: 600}}>Cancel</button>
+                                    <button onClick={handleSendMessage} disabled={sending || !messageText.trim()} style={{background: '#4D0000', color: 'white', padding: '0.5rem 1rem', borderRadius: '6px', border: 'none', cursor: 'pointer', fontWeight: 600, opacity: sending ? 0.7 : 1}}>
+                                        {sending ? 'Sending...' : 'Send Message'}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
             )}
         </div>

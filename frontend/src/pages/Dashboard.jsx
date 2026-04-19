@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import BackButton from '../components/BackButton';
 import './Dashboard.css';
 
 const Dashboard = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState({
@@ -14,6 +15,10 @@ const Dashboard = () => {
     });
     const [selectedBooking, setSelectedBooking] = useState(null);
     const [showFeedback, setShowFeedback] = useState(false);
+    
+    // Notifications State
+    const [notifications, setNotifications] = useState([]);
+    const [showNotifications, setShowNotifications] = useState(false);
     const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard' or 'feedback'
     const [feedbackData, setFeedbackData] = useState({ rating: 5, comments: '' });
 
@@ -27,54 +32,75 @@ const Dashboard = () => {
         return `${start} - ${end}`;
     };
 
-    useEffect(() => {
-        const fetchBookings = async () => {
-            try {
-                const token = localStorage.getItem('userToken');
-                const response = await fetch('http://127.0.0.1:5000/api/bookings', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log("Bookings Data:", data); // Debugging
-                    setBookings(data);
-
-                    // Calculate stats
-                    const statsUpdate = data.reduce((acc, curr) => {
-                        acc.total++;
-                        acc[curr.status]++;
-                        return acc;
-                    }, { total: 0, confirmed: 0, pending: 0, rejected: 0 });
-
-                    setStats(statsUpdate);
-                } else if (response.status === 401) {
-                    localStorage.clear();
-                    navigate('/login');
+    const fetchBookings = async () => {
+        try {
+            const token = localStorage.getItem('userToken');
+            const response = await fetch('http://127.0.0.1:5000/api/bookings', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
                 }
-            } catch (error) {
-                console.error("Error fetching bookings:", error);
-            } finally {
-                setLoading(false);
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setBookings(data);
+                const statsUpdate = data.reduce((acc, curr) => {
+                    acc.total++;
+                    acc[curr.status]++;
+                    return acc;
+                }, { total: 0, confirmed: 0, pending: 0, rejected: 0, cancelled: 0 });
+                setStats(statsUpdate);
+            } else if (response.status === 401) {
+                localStorage.clear();
+                navigate('/login');
             }
-        };
-
-        if (userId) {
-            fetchBookings();
-        } else {
-            navigate('/login');
+        } catch (error) {
+            console.error("Error fetching bookings:", error);
+        } finally {
+            setLoading(false);
         }
+    };
 
-        // Sync tab with URL
+    const fetchNotifications = async () => {
+        try {
+            const token = localStorage.getItem('userToken');
+            if (!token) return;
+            const response = await fetch('http://127.0.0.1:5000/api/notifications', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setNotifications(data);
+            }
+        } catch (error) {
+            console.error("Error fetching notifications:", error);
+        }
+    };
+
+    // Sync tab with URL query parameter
+    useEffect(() => {
         const params = new URLSearchParams(location.search);
         if (params.get('tab') === 'feedback') {
             setActiveTab('feedback');
         } else {
             setActiveTab('dashboard');
         }
-    }, [userId, navigate, location.search]);
+    }, [location.search]);
+
+    useEffect(() => {
+        if (userId) {
+            fetchBookings();
+            fetchNotifications();
+            
+            // Poll for new notifications every 10 seconds
+            const intervalId = setInterval(fetchNotifications, 10000);
+            
+            // Cleanup interval on unmount
+            return () => clearInterval(intervalId);
+        } else {
+            navigate('/login');
+        }
+    }, [userId, navigate]);
 
     const handleLogout = () => {
         localStorage.clear();
@@ -122,10 +148,78 @@ const Dashboard = () => {
         }
     };
 
+    const handleCancelBooking = async (bookingId) => {
+        if (!window.confirm("Are you sure you want to cancel this booking? This action cannot be undone. No refund will be given.")) return;
+        try {
+            const token = localStorage.getItem('userToken');
+            const res = await fetch(`http://127.0.0.1:5000/api/bookings/${bookingId}/cancel`, {
+                method: 'PUT',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                alert("Booking cancelled successfully.");
+                setSelectedBooking(null);
+                fetchBookings();
+            } else {
+                const data = await res.json();
+                alert(data.error || "Failed to cancel booking.");
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Error cancelling booking.");
+        }
+    };
+
+    const [showReschedule, setShowReschedule] = useState(false);
+    const [rescheduleDate, setRescheduleDate] = useState(null);
+
+    const handleRescheduleSubmit = async () => {
+        if (!rescheduleDate) return;
+        try {
+            const token = localStorage.getItem('userToken');
+            const newDateStr = `${rescheduleDate.getFullYear()}-${String(rescheduleDate.getMonth()+1).padStart(2,'0')}-${String(rescheduleDate.getDate()).padStart(2,'0')}`;
+            const res = await fetch(`http://127.0.0.1:5000/api/bookings/${selectedBooking.id}/reschedule`, {
+                method: 'PUT',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ new_date: newDateStr })
+            });
+            if (res.ok) {
+                alert("Booking rescheduled successfully.");
+                setShowReschedule(false);
+                setSelectedBooking(null);
+                fetchBookings();
+            } else {
+                const data = await res.json();
+                alert(data.error || "Failed to reschedule booking.");
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Error rescheduling booking.");
+        }
+    };
+
+    const handleMarkAsRead = async (notificationId) => {
+        try {
+            const token = localStorage.getItem('userToken');
+            await fetch(`http://127.0.0.1:5000/api/notifications/${notificationId}/read`, {
+                method: 'PUT',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            // Update local state
+            setNotifications(notifications.map(n => 
+                n.id === notificationId ? { ...n, is_read: true } : n
+            ));
+        } catch (error) {
+            console.error("Error marking notification as read:", error);
+        }
+    };
+
+    const unreadCount = notifications.filter(n => !n.is_read).length;
+
     return (
         <div className="dashboard-page-content" style={{ padding: '2rem' }}>
 
-            <header className="dashboard-header">
+            <header className="dashboard-header" style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     <BackButton />
                     <div className="welcome-text">
@@ -133,9 +227,49 @@ const Dashboard = () => {
                         <p>{userEmail}</p>
                     </div>
                 </div>
-                <Link to="/booking" className="btn-primary">
-                    + Book a Venue
-                </Link>
+
+                <div style={{ position: 'relative' }}>
+                    <button 
+                        onClick={() => setShowNotifications(!showNotifications)}
+                        style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', position: 'relative', padding: '0.5rem' }}
+                    >
+                        🔔
+                        {unreadCount > 0 && (
+                            <span style={{
+                                position: 'absolute', top: 0, right: 0, background: 'red', color: 'white', 
+                                borderRadius: '50%', padding: '2px 6px', fontSize: '0.7rem', fontWeight: 'bold'
+                            }}>
+                                {unreadCount}
+                            </span>
+                        )}
+                    </button>
+
+                    {showNotifications && (
+                        <div style={{
+                            position: 'absolute', top: '100%', right: 0, width: '300px', background: 'white', 
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.15)', borderRadius: '8px', zIndex: 100, maxHeight: '400px', overflowY: 'auto'
+                        }}>
+                            <div style={{ padding: '1rem', borderBottom: '1px solid #eee', fontWeight: 'bold' }}>Notifications</div>
+                            {notifications.length === 0 ? (
+                                <div style={{ padding: '1rem', textAlign: 'center', color: '#666' }}>No notifications</div>
+                            ) : (
+                                notifications.map(n => (
+                                    <div 
+                                        key={n.id} 
+                                        onClick={() => !n.is_read && handleMarkAsRead(n.id)}
+                                        style={{ 
+                                            padding: '1rem', borderBottom: '1px solid #eee', cursor: n.is_read ? 'default' : 'pointer',
+                                            background: n.is_read ? 'white' : '#f0f9ff' 
+                                        }}
+                                    >
+                                        <p style={{ margin: 0, color: '#333', fontSize: '0.9rem' }}>{n.message}</p>
+                                        <small style={{ color: '#999', fontSize: '0.75rem' }}>{new Date(n.created_at).toLocaleString()}</small>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    )}
+                </div>
             </header>
 
             {activeTab === 'feedback' ? (
@@ -232,7 +366,7 @@ const Dashboard = () => {
                                             <td style={{ fontWeight: 600 }}>{booking.hall_name}</td>
                                             <td>{new Date(booking.event_date).toLocaleDateString()}</td>
                                             <td>
-                                                <span className={`status-badge status-${booking.status}`}>
+                                                <span className={`status-badge status-${booking.status === 'cancelled' ? 'rejected' : booking.status}`}>
                                                     {booking.status === 'pending' ? 'Awaiting Approval' : booking.status}
                                                 </span>
                                             </td>
@@ -292,15 +426,36 @@ const Dashboard = () => {
                                 </div>
                                 <div className="detail-item">
                                     <span className="detail-label">Payment Status</span>
-                                    <div className={`status-badge status-${selectedBooking.payment_status === 'paid' ? 'confirmed' : 'rejected'}`} style={{ display: 'inline-block' }}>
+                                    <div className={`status-badge status-${(selectedBooking.payment_status === 'paid' || selectedBooking.payment_status === 'refunded') ? 'confirmed' : 'rejected'}`} style={{ display: 'inline-block' }}>
                                         {selectedBooking.payment_status?.toUpperCase()}
                                     </div>
                                 </div>
                             </div>
 
+                            {/* Reschedule Box */}
+                            {showReschedule && (
+                                <div style={{background: '#f9fafb', padding: '1rem', borderRadius: '8px', border: '1px solid #e5e7eb', marginBottom: '1.5rem'}}>
+                                    <h4 style={{marginTop: 0}}>Select New Date</h4>
+                                    <div style={{display: 'flex', gap: '1rem', alignItems: 'center'}}>
+                                        {/* DatePicker must be conditionally imported or standard input date */}
+                                        <input type="date" value={rescheduleDate ? rescheduleDate.toISOString().split('T')[0] : ''} onChange={(e) => setRescheduleDate(new Date(e.target.value))} style={{padding: '0.5rem', borderRadius: '4px', border: '1px solid #ccc'}}/>
+                                        <button onClick={handleRescheduleSubmit} disabled={!rescheduleDate} style={{background: '#4D0000', color: 'white', padding: '0.5rem 1rem', borderRadius: '4px', border: 'none', cursor: 'pointer'}}>Confirm</button>
+                                        <button onClick={() => setShowReschedule(false)} style={{background: 'none', border: 'none', color: '#666', cursor: 'pointer'}}>Cancel</button>
+                                    </div>
+                                </div>
+                            )}
+
                             <div className="modal-actions">
-                                <button className="btn-cancel" onClick={() => setSelectedBooking(null)}>Close</button>
-                                {selectedBooking.payment_status === 'pending' && selectedBooking.status !== 'rejected' && (
+                                <button className="btn-cancel" onClick={() => { setSelectedBooking(null); setShowReschedule(false); }}>Close</button>
+                                
+                                {/* Reschedule rules: must be > 3 days out and not rejected/cancelled */}
+                                {['pending', 'confirmed'].includes(selectedBooking.status) && (new Date(selectedBooking.event_date) - new Date()) / (1000 * 60 * 60 * 24) >= 3 && !showReschedule && (
+                                    <>
+                                        <button className="btn-primary" style={{ background: '#3b82f6', margin: 0 }} onClick={() => setShowReschedule(true)}>Reschedule</button>
+                                        <button className="btn-primary" style={{ background: '#dc2626', margin: 0 }} onClick={() => handleCancelBooking(selectedBooking.id)}>Cancel Booking</button>
+                                    </>
+                                )}
+                                {['pending', 'partial'].includes(selectedBooking.payment_status) && selectedBooking.status !== 'rejected' && (
                                     <button
                                         className="btn-primary"
                                         onClick={() => navigate('/booking', { state: { step: 3, bookingId: selectedBooking.id } })}

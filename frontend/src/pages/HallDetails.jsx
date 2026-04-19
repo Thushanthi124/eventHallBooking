@@ -9,6 +9,7 @@ const HallDetails = () => {
     const navigate = useNavigate();
     const [hall, setHall] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         const fetchHall = async () => {
@@ -18,10 +19,11 @@ const HallDetails = () => {
                     const data = await response.json();
                     setHall(data);
                 } else {
-                    console.error("Hall not found");
+                    setError("Venue not found in our records.");
                 }
             } catch (error) {
                 console.error("Error fetching hall:", error);
+                setError("Unable to connect to the server. Please ensure the backend is running.");
             } finally {
                 setLoading(false);
             }
@@ -43,6 +45,16 @@ const HallDetails = () => {
         return (
             <div className="details-loading">
                 <p>Loading exquisite venue details...</p>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="details-error">
+                <h2>Connection Issue</h2>
+                <p>{error}</p>
+                <Link to="/" className="back-btn-simple">Return Home</Link>
             </div>
         );
     }

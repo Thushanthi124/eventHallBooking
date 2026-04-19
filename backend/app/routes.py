@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, render_template
 from app import db, mail
 from flask_mail import Message
-from app.models import User, Hall, Booking, Payment, Feedback, StaffAssignment
+from app.models import User, Hall, Booking, Payment, Feedback, StaffAssignment, FoodPackage, Notification
 from app.auth import token_required, admin_required, customer_or_admin, staff_required
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
@@ -38,7 +38,8 @@ def register():
         email=data['email'], 
         password_hash=hashed_password, 
         role=data.get('role', 'customer'),
-        verification_token=verification_token
+        verification_token=verification_token,
+        is_approved=(data.get('role', 'customer') != 'staff') # Staff need approval
     )
     db.session.add(new_user)
     db.session.commit()
@@ -101,6 +102,9 @@ def login():
     if user and check_password_hash(user.password_hash, data.get('password')):
         if not user.is_verified:
             return jsonify({'error': 'Please verify your email before logging in.'}), 401
+            
+        if not user.is_approved:
+            return jsonify({'error': 'Your account is pending admin approval.'}), 403
             
         # Generate Token (Dependency-free fallback)
         s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
@@ -172,7 +176,7 @@ def get_halls():
     halls = Hall.query.all()
     return jsonify([hall.to_dict() for hall in halls]), 200
 
-@bp.route('/api/halls/<int:hall_id>', methods=['GET'])
+@bp.route('/api/halls/<hall_id>', methods=['GET'])
 def get_hall(hall_id):
     hall = Hall.query.get(hall_id)
     if not hall:
@@ -302,11 +306,21 @@ def create_booking(current_user):
     if guests > hall.capacity:
         return jsonify({'error': f'Guest count ({guests}) exceeds hall capacity ({hall.capacity})'}), 400
 
-    food_pkg = data.get('food_package', 'standard')
+    food_pkg_name = data.get('food_package', 'standard')
+    food_package = FoodPackage.query.filter_by(name=food_pkg_name).first()
     
+    # Fallback or Error if package not found (Slightly relaxed for now, or strict?)
+    # Let's be strict but safe - if not found, maybe default to standard? 
+    # Or better, return error. But for robust code during migration let's try to find 'Standard' if not found
+    if not food_package:
+         food_package = FoodPackage.query.filter_by(name='Standard').first()
+         if not food_package:
+             # If DB is empty of packages, we have a problem. 
+             # For now, let's assume seed run or return error
+             return jsonify({'error': 'Invalid food package selected'}), 400
+
     # Food pricing logic
-    food_rates = {'basic': 500, 'standard': 800, 'premium': 1200}
-    food_price = guests * food_rates.get(food_pkg, 800)
+    food_price = guests * float(food_package.price_per_head)
     total_calculated = hall_price + food_price
 
     new_booking = Booking(
@@ -317,7 +331,7 @@ def create_booking(current_user):
         end_time=end_time,
         phone=data['phone'],
         guests=guests,
-        food_package=food_pkg,
+        food_package_id=food_package.id,
         custom_preferences=data.get('custom_preferences', ''),
         total_price=total_calculated,
         payment_status='pending'
@@ -330,7 +344,7 @@ def create_booking(current_user):
         'booking': new_booking.to_dict()
     }), 201
 
-@bp.route('/api/bookings/<int:booking_id>/pay', methods=['POST'])
+@bp.route('/api/bookings/<booking_id>/pay', methods=['POST'])
 @token_required
 def process_payment(current_user, booking_id):
     try:
@@ -410,7 +424,7 @@ def get_bookings(current_user):
     
     return jsonify([booking.to_dict() for booking in bookings]), 200
 
-@bp.route('/api/bookings/<int:booking_id>', methods=['GET'])
+@bp.route('/api/bookings/<booking_id>', methods=['GET'])
 @token_required
 def get_booking(current_user, booking_id):
     booking = Booking.query.get(booking_id)
@@ -422,7 +436,7 @@ def get_booking(current_user, booking_id):
         
     return jsonify(booking.to_dict()), 200
 
-@bp.route('/api/bookings/<int:booking_id>/status', methods=['PUT'])
+@bp.route('/api/bookings/<booking_id>/status', methods=['PUT'])
 @admin_required
 def update_booking_status(current_user, booking_id):
     """Admin-only endpoint to update booking status"""
@@ -435,10 +449,14 @@ def update_booking_status(current_user, booking_id):
     if 'status' not in data:
         return jsonify({'error': 'Status field required'}), 400
     
-    if data['status'] not in ['pending', 'confirmed', 'rejected']:
+    if data['status'] not in ['pending', 'confirmed', 'rejected', 'cancelled']:
         return jsonify({'error': 'Invalid status value'}), 400
     
     booking.status = data['status']
+    
+    if booking.status == 'rejected' and booking.paid_amount and booking.paid_amount > 0:
+        booking.payment_status = 'refunded'
+        
     db.session.commit()
     
     # Notify user if booking is confirmed or rejected
@@ -473,6 +491,63 @@ def update_booking_status(current_user, booking_id):
         'message': f'Booking {data["status"]} successfully',
         'booking': booking.to_dict()
     }), 200
+
+@bp.route('/api/bookings/<booking_id>/cancel', methods=['PUT'])
+@token_required
+def cancel_booking(current_user, booking_id):
+    booking = Booking.query.get(booking_id)
+    if not booking:
+        return jsonify({'error': 'Booking not found'}), 404
+        
+    if booking.user_id != current_user.id and current_user.role != 'admin':
+        return jsonify({'error': 'Unauthorized'}), 403
+        
+    days_until_event = (booking.event_date - datetime.utcnow().date()).days
+    if days_until_event < 3 and current_user.role != 'admin':
+        return jsonify({'error': 'Cancellations must be made at least 3 days in advance'}), 400
+        
+    booking.status = 'cancelled'
+    if booking.paid_amount and booking.paid_amount > 0:
+        booking.payment_status = 'non-refundable'
+        
+    db.session.commit()
+    return jsonify({'message': 'Booking cancelled successfully', 'booking': booking.to_dict()}), 200
+
+@bp.route('/api/bookings/<booking_id>/reschedule', methods=['PUT'])
+@token_required
+def reschedule_booking(current_user, booking_id):
+    data = request.get_json()
+    booking = Booking.query.get(booking_id)
+    
+    if not booking:
+        return jsonify({'error': 'Booking not found'}), 404
+        
+    if booking.user_id != current_user.id and current_user.role != 'admin':
+        return jsonify({'error': 'Unauthorized'}), 403
+        
+    if not data.get('new_date'):
+        return jsonify({'error': 'New date is required'}), 400
+        
+    try:
+        new_date = datetime.strptime(data['new_date'], '%Y-%m-%d').date()
+    except ValueError:
+        return jsonify({'error': 'Invalid date format'}), 400
+        
+    days_until_current_event = (booking.event_date - datetime.utcnow().date()).days
+    if days_until_current_event < 3 and current_user.role != 'admin':
+        return jsonify({'error': 'Rescheduling must be done at least 3 days in advance'}), 400
+        
+    if new_date <= datetime.utcnow().date():
+         return jsonify({'error': 'New date must be in the future'}), 400
+         
+    # Note: simple availability check. If there's any non-rejected, non-cancelled booking on that date, reject.
+    conflicting_bookings = Booking.query.filter_by(hall_id=booking.hall_id, event_date=new_date).filter(Booking.status != 'rejected').filter(Booking.status != 'cancelled').filter(Booking.id != booking.id).all()
+    if conflicting_bookings:
+         return jsonify({'error': 'Selected date is not available'}), 400
+         
+    booking.event_date = new_date
+    db.session.commit()
+    return jsonify({'message': 'Booking rescheduled successfully', 'booking': booking.to_dict()}), 200
 
 # Staff Routes
 @bp.route('/api/staff/list', methods=['GET'])
@@ -531,11 +606,40 @@ def update_assignment_status(current_user, assignment_id):
         
     return jsonify({'message': 'Status updated'}), 200
 
+@bp.route('/api/admin/users/<user_id>/approve', methods=['PUT'])
+@admin_required
+def approve_user(current_user, user_id):
+    """Admin-only endpoint to approve a user (staff)"""
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+        
+    user.is_approved = True
+    db.session.commit()
+    
+    # Optional: Send email notification to staff
+    
+    return jsonify({'message': f'User {user.username} approved successfully'}), 200
+
+@bp.route('/api/admin/users/<user_id>/reject', methods=['PUT'])
+@admin_required
+def reject_user(current_user, user_id):
+    """Admin-only endpoint to reject/block a user"""
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+        
+    user.is_approved = False
+    db.session.commit()
+    
+    return jsonify({'message': f'User {user.username} rejected/blocked successfully'}), 200
+
 @bp.route('/api/admin/feedback', methods=['GET'])
 @admin_required
 def get_all_feedback(current_user):
     """Admin-only endpoint to get all feedback"""
     # Outer left join to include general feedback (where booking/hall is null)
+    # Join User directly since user_id is restored
     feedbacks = db.session.query(Feedback, Booking, User, Hall)\
         .outerjoin(Booking, Feedback.booking_id == Booking.id)\
         .join(User, Feedback.user_id == User.id)\
@@ -583,7 +687,7 @@ def submit_feedback(current_user):
             return jsonify({'error': 'Feedback already submitted for this booking'}), 400
     
     feedback = Feedback(
-        booking_id=booking_id, # Can be None
+        booking_id=booking_id, 
         user_id=current_user.id,
         rating=data['rating'],
         comments=data.get('comments', '')
@@ -596,8 +700,19 @@ def submit_feedback(current_user):
 @bp.route('/api/debug/seed', methods=['GET'])
 def seed_db():
     try:
+        if FoodPackage.query.count() == 0:
+            packages = [
+                FoodPackage(name='basic', price_per_head=500.00, description='Basic Menu', items='Rice, Curry01, Curry02'),
+                FoodPackage(name='standard', price_per_head=800.00, description='Standard Menu', items='Rice, Curry01, Curry02, Chicken, Dessert'),
+                FoodPackage(name='premium', price_per_head=1200.00, description='Premium Menu', items='Fried Rice, Curry01, Curry02, Mutton, Fish, Dessert, Drink')
+            ]
+            for p in packages:
+                db.session.add(p)
+            db.session.commit()
+            print("Seeded food packages")
+
         if Hall.query.count() > 0:
-            return jsonify({'message': 'Halls already exist'}), 200
+            return jsonify({'message': 'Halls already exist (Packages checked/seeded)'}), 200
             
         halls = [
             Hall(
@@ -641,3 +756,122 @@ def seed_db():
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
+# --- Notifications API ---
+
+@bp.route('/api/notifications', methods=['GET'])
+@token_required
+def get_notifications(current_user):
+    """Get all notifications for the current user."""
+    notifications = Notification.query.filter_by(user_id=current_user.id).order_by(Notification.created_at.desc()).all()
+    return jsonify([n.to_dict() for n in notifications]), 200
+
+@bp.route('/api/notifications/<int:notification_id>/read', methods=['PUT'])
+@token_required
+def mark_notification_read(current_user, notification_id):
+    """Mark a notification as read."""
+    notification = Notification.query.get(notification_id)
+    if not notification:
+        return jsonify({'error': 'Notification not found'}), 404
+        
+    if notification.user_id != current_user.id:
+        return jsonify({'error': 'Unauthorized'}), 403
+        
+    notification.is_read = True
+    db.session.commit()
+    return jsonify({'message': 'Marked as read'}), 200
+
+@bp.route('/api/admin/notifications', methods=['POST'])
+@admin_required
+def create_notification_from_admin(current_user):
+    """Admin endpoint to create a notification for a user."""
+    data = request.get_json()
+    if not data or not data.get('user_id') or not data.get('message'):
+        return jsonify({'error': 'user_id and message are required'}), 400
+        
+    booking_id = data.get('booking_id')
+    
+    notification = Notification(
+        user_id=data['user_id'],
+        booking_id=booking_id,
+        message=data['message']
+    )
+    db.session.add(notification)
+    db.session.commit()
+    
+    return jsonify({
+        'message': 'Notification sent successfully',
+        'notification': notification.to_dict()
+    }), 201
+
+@bp.route('/api/admin/notifications', methods=['GET'])
+@admin_required
+def get_admin_sent_notifications(current_user):
+    """Admin endpoint to get all sent notifications."""
+    notifications = Notification.query.order_by(Notification.created_at.desc()).all()
+    
+    results = []
+    # Fetch additional data for UI (username, booking details)
+    for n in notifications:
+        user = User.query.get(n.user_id)
+        d = n.to_dict()
+        d['user_name'] = user.username if user else 'Unknown User'
+        d['user_email'] = user.email if user else 'Unknown Email'
+        results.append(d)
+        
+    return jsonify(results), 200
+
+# --- New Staff Features ---
+
+@bp.route('/api/staff/schedule', methods=['GET'])
+@staff_required
+def get_staff_schedule(current_user):
+    assignments = StaffAssignment.query.filter_by(user_id=current_user.id).order_by(StaffAssignment.assigned_at.desc()).all()
+    return jsonify([a.to_dict() for a in assignments]), 200
+
+@bp.route('/api/staff/payments', methods=['GET'])
+@staff_required
+def get_staff_payments(current_user):
+    assignments = StaffAssignment.query.filter_by(user_id=current_user.id, status='completed').order_by(StaffAssignment.assigned_at.desc()).all()
+    return jsonify([a.to_dict() for a in assignments]), 200
+
+@bp.route('/api/staff/leave', methods=['POST'])
+@staff_required
+def create_staff_leave(current_user):
+    data = request.get_json()
+    from datetime import datetime
+    new_leave = StaffLeave(
+        user_id=current_user.id,
+        leave_date=datetime.strptime(data['leave_date'], '%Y-%m-%d').date(),
+        reason=data.get('reason', '')
+    )
+    db.session.add(new_leave)
+    db.session.commit()
+    return jsonify(new_leave.to_dict()), 201
+
+@bp.route('/api/staff/leave', methods=['GET'])
+@staff_required
+def get_staff_leave(current_user):
+    leaves = StaffLeave.query.filter_by(user_id=current_user.id).order_by(StaffLeave.leave_date.desc()).all()
+    return jsonify([l.to_dict() for l in leaves]), 200
+
+@bp.route('/api/admin/staff_leaves', methods=['GET'])
+@admin_required
+def get_all_staff_leaves(current_user):
+    leaves = StaffLeave.query.all()
+    return jsonify([l.to_dict() for l in leaves]), 200
+
+@bp.route('/api/staff/messages', methods=['POST'])
+@staff_required
+def staff_message_admin(current_user):
+    data = request.get_json()
+    admins = User.query.filter_by(role='admin').all()
+    for admin in admins:
+        notification = Notification(
+            user_id=admin.id,
+            booking_id=data.get('booking_id'),
+            message=f"From Staff {current_user.username}: {data.get('message')}"
+        )
+        db.session.add(notification)
+    
+    db.session.commit()
+    return jsonify({'message': 'Message sent to admin successfully.'}), 201

@@ -1,4 +1,4 @@
-﻿// src/pages/Booking.jsx
+// src/pages/Booking.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import DatePicker from 'react-datepicker';
@@ -233,7 +233,7 @@ const Booking = () => {
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          hall_id: parseInt(formData.hallType),
+          hall_id: formData.hallType,
           event_date: dateStr,
           start_time: formData.startTime,
           end_time: formData.endTime,
@@ -258,8 +258,15 @@ const Booking = () => {
 
   const handlePayment = async () => {
     const userId = localStorage.getItem('userId');
+    const token = localStorage.getItem('userToken');
+    
+    if (!token) {
+      alert("Your session has expired or you are not logged in. Please log in again.");
+      navigate('/login', { state: { from: location } });
+      return;
+    }
+
     try {
-      const token = localStorage.getItem('userToken');
       const response = await fetch(`http://127.0.0.1:5000/api/bookings/${bookingId}/pay`, {
         method: 'POST',
         headers: {
@@ -270,12 +277,19 @@ const Booking = () => {
           payment_type: paymentType
         })
       });
+      
       if (response.ok) {
         // alert("Payment successful! Your booking is secured.");
         navigate('/payment-success');
       } else {
         const errorData = await response.json();
-        alert(errorData.error || "Payment verification failed.");
+        if (response.status === 401) {
+            alert(errorData.error || "Session expired. Please log in again.");
+            localStorage.clear();
+            navigate('/login');
+        } else {
+            alert(errorData.error || "Payment verification failed.");
+        }
       }
     } catch (e) {
       console.error("Payment Error:", e);
@@ -322,6 +336,7 @@ const Booking = () => {
         <div className="wizard-content">
           {step === 1 && (
             <div className="step-view">
+              <BackButton style={{ alignSelf: 'flex-start', marginBottom: '1rem' }} />
               <h2 className="step-title">Event Information</h2>
               <div className="form-grid">
                 <div className="form-group">
@@ -331,17 +346,17 @@ const Booking = () => {
                 </div>
 
                 <div className="form-group full-width">
-                  <label>Choose Your Venue</label>
+                  <label>Selected Venue</label>
                   <div className="halls-selection-grid">
-                    {halls.map(hall => (
+                    {halls.filter(hall => hall.id.toString() === formData.hallType).map(hall => (
                       <div
                         key={hall.id}
-                        className={`hall-option-card ${formData.hallType === hall.id.toString() ? 'selected' : ''}`}
-                        onClick={() => setFormData(prev => ({ ...prev, hallType: hall.id.toString() }))}
+                        className="hall-option-card selected"
                         style={{
                           backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.7)), url(${hall.image_url})`,
                           backgroundSize: 'cover',
-                          backgroundPosition: 'center'
+                          backgroundPosition: 'center',
+                          cursor: 'default'
                         }}
                       >
                         <div className="hall-card-header">
@@ -486,7 +501,10 @@ const Booking = () => {
               </div>
               <div className="wizard-actions">
                 <button className="wizard-btn secondary" onClick={() => setStep(1)}>← Edit Details</button>
-                <button className="wizard-btn" onClick={handleSubmitBooking}>Confirm & Pay Online →</button>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem' }}>
+                  <button className="wizard-btn" onClick={handleSubmitBooking}>Proceed to Payment →</button>
+                  <span style={{ fontSize: '0.8rem', color: '#64748b' }}>* You can choose to pay Full or Advance (50%) in the next step</span>
+                </div>
               </div>
             </div>
           )}

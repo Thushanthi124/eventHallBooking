@@ -4,6 +4,11 @@ from config import Config
 import sys
 
 def update_database():
+    """
+    Connects to the MySQL database and applies schema updates.
+    This includes adding new columns, altering enums, and creating new tables 
+    (such as payments, feedback, and staff_assignments).
+    """
     conn = None
     cursor = None
     print("Connecting to database...")

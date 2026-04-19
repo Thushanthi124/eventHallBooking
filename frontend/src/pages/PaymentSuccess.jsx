@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BackButton from '../components/BackButton';
 import './Auth.css'; // Reusing Auth styles for card layout
 
 const PaymentSuccess = () => {
     const navigate = useNavigate();
+    const [step, setStep] = useState(1);
 
     const handleDashboardRedirect = () => {
         const role = localStorage.getItem('userRole');
@@ -36,18 +37,44 @@ const PaymentSuccess = () => {
                     </svg>
                 </div>
 
-                <h1 style={{ color: '#15803d', fontSize: '2rem', marginBottom: '0.5rem' }}>Payment Successful!</h1>
-                <p style={{ color: '#374151', fontSize: '1.1rem', marginBottom: '2rem' }}>
-                    Your booking has been secured successfully.
-                </p>
-
-                <button
-                    onClick={handleDashboardRedirect}
-                    className="auth-btn"
-                    style={{ background: '#15803d' }}
-                >
-                    View My Dashboard
-                </button>
+                {step === 1 ? (
+                    <>
+                        <h1 style={{ color: '#15803d', fontSize: '2rem', marginBottom: '0.5rem' }}>Payment Successful!</h1>
+                        <p style={{ color: '#374151', fontSize: '1.1rem', marginBottom: '2rem' }}>
+                            Your payment has been processed.
+                        </p>
+                        <button
+                            onClick={() => setStep(2)}
+                            className="auth-btn"
+                            style={{ background: '#15803d', margin: 0 }}
+                        >
+                            OK
+                        </button>
+                    </>
+                ) : (
+                    <>
+                        <h1 style={{ color: '#15803d', fontSize: '2rem', marginBottom: '0.5rem' }}>Booking Completed!</h1>
+                        <p style={{ color: '#374151', fontSize: '1.1rem', marginBottom: '2rem' }}>
+                            Your booking has been secured successfully.
+                        </p>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            <button
+                                onClick={handleDashboardRedirect}
+                                className="auth-btn"
+                                style={{ background: '#15803d', margin: 0 }}
+                            >
+                                View My Dashboard
+                            </button>
+                            <button
+                                onClick={() => navigate('/')}
+                                className="auth-btn"
+                                style={{ background: '#ef4444', margin: 0 }}
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </>
+                )}
             </div>
         </div>
     );

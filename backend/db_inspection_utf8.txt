@@ -1,0 +1,97 @@
+Tables found: ['bookings', 'customers', 'feedback', 'hall_owners', 'halls', 'payments', 'staff_assignments', 'users']
+
+Table: bookings
+  - id (VARCHAR(20))
+  - user_id (VARCHAR(20))
+  - hall_id (VARCHAR(20))
+  - event_date (DATE)
+  - start_time (TIME)
+  - end_time (TIME)
+  - phone (VARCHAR(20))
+  - guests (INTEGER)
+  - food_package (VARCHAR(50))
+  - custom_preferences (TEXT)
+  - status (ENUM)
+  - total_price (DECIMAL(12, 2))
+  - payment_status (ENUM)
+  - created_at (DATETIME)
+  - paid_amount (DECIMAL(12, 2))
+  Foreign Keys:
+    - ['user_id'] -> users.['id']
+    - ['hall_id'] -> halls.['id']
+
+Table: customers
+  - customer_id (INTEGER)
+  - name (VARCHAR(100))
+  - email (VARCHAR(100))
+  - phone (VARCHAR(15))
+  - created_at (TIMESTAMP)
+  No Foreign Keys
+
+Table: feedback
+  - id (INTEGER)
+  - booking_id (VARCHAR(20))
+  - user_id (VARCHAR(20))
+  - rating (INTEGER)
+  - comments (TEXT)
+  - admin_response (TEXT)
+  - created_at (DATETIME)
+  Foreign Keys:
+    - ['booking_id'] -> bookings.['id']
+    - ['user_id'] -> users.['id']
+
+Table: hall_owners
+  - owner_id (INTEGER)
+  - name (VARCHAR(100))
+  - email (VARCHAR(100))
+  - phone (VARCHAR(15))
+  - created_at (TIMESTAMP)
+  No Foreign Keys
+
+Table: halls
+  - id (VARCHAR(20))
+  - name (VARCHAR(100))
+  - capacity (INTEGER)
+  - price_per_day (DECIMAL(10, 2))
+  - location (VARCHAR(200))
+  - description (TEXT)
+  - image_url (VARCHAR(255))
+  - created_at (DATETIME)
+  - price_morning (DECIMAL(10, 2))
+  - price_evening (DECIMAL(10, 2))
+  - owner_id (INTEGER)
+  Foreign Keys:
+    - ['owner_id'] -> hall_owners.['owner_id']
+
+Table: payments
+  - id (INTEGER)
+  - booking_id (VARCHAR(20))
+  - amount (DECIMAL(10, 2))
+  - payment_date (DATETIME)
+  - payment_method (VARCHAR(50))
+  - status (ENUM)
+  Foreign Keys:
+    - ['booking_id'] -> bookings.['id']
+
+Table: staff_assignments
+  - id (INTEGER)
+  - booking_id (VARCHAR(20))
+  - user_id (VARCHAR(20))
+  - task (VARCHAR(255))
+  - status (ENUM)
+  - assigned_at (DATETIME)
+  Foreign Keys:
+    - ['booking_id'] -> bookings.['id']
+    - ['user_id'] -> users.['id']
+
+Table: users
+  - id (VARCHAR(20))
+  - username (VARCHAR(80))
+  - email (VARCHAR(120))
+  - password_hash (VARCHAR(255))
+  - role (ENUM)
+  - staff_type (ENUM)
+  - is_verified (TINYINT)
+  - verification_token (VARCHAR(100))
+  - created_at (DATETIME)
+  No Foreign Keys

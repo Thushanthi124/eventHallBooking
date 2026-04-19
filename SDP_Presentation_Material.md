@@ -109,4 +109,54 @@
 | **7** | **Admin Dashboard** | Admin logs in. Views "Booking Requests". Clicks "Confirm" or "Reject". | Updates status. Triggers **Email Notification** to customer. | Admin privileges verified. |
 
 ---
+
+## TASK 3: FUTURE ENHANCEMENTS & PRODUCTION READINESS
+
+**1. Payment Gateway Integration**
+A simulated payment workflow is currently implemented to demonstrate transaction handling, logic, and state transitions (e.g., partial vs. full payments). Integration with real-world payment gateways such as Stripe, PayPal, or local Sri Lankan gateways (PayHere) is identified as future work to handle actual monetary transactions securely.
+
+**2. Robust Security Hardening**
+Basic authentication (password hashing, verifications) and authorization (role-based access control via decorators) are successfully implemented. However, advanced security hardening is proposed for production deployment, including:
+*   **Rate Limiting:** To prevent DDoS or brute-force endpoint attacks.
+*   **Token Lifecycle Management:** Implementing HTTP-only secure cookies and refresh/access token rotation.
+*   **HTTPS Enforcement:** Ensuring all traffic is encrypted over SSL/TLS in deployment.
+
+**3. Scalability & System Architecture**
+The current system is designed for single-instance deployment, which is sufficient for MVP presentation and validation. Scalability enhancements are considered future improvements as operations grow. These include:
+*   **Caching Layers:** Implementing Redis or Memcached to quickly serve frequently accessed data (like Hall details and static availability).
+*   **Distributed Architecture:** Containerizing the application (Docker/Kubernetes) and setting up load balancers to handle peak traffic during wedding seasons.
+
+---
+
+## TASK 4: DATABASE SCHEMA & NORMALIZATION (3NF)
+**Academic Justification**: A well-structured relational database ensures data integrity, minimizes redundancy, and prevents update anomalies. The system's underlying MySQL database complies with the Third Normal Form (3NF).
+
+### Key Architectural Decisions:
+1. **Separation of Entities (1NF/2NF Compliance)**
+   * User data, Hall details, Food Packages, and Bookings are decoupled into separate tables. 
+   * A `Booking` relies on Foreign Keys (`user_id`, `hall_id`, `food_package_id`) rather than duplicating the customer name, hall name, or meal plan details on every transaction row.
+
+2. **Elimination of Transitive Dependencies (3NF Compliance)**
+   * **Hall Owner Migration:** Hall owner details (Name, Email, Phone) were historically tightly coupled to the Hall entity. To achieve 3NF, the `HallOwner` entity was created. The `halls` table now only contains a `owner_id` Foreign Key, ensuring that if an owner updates their contact number, it only needs to be updated in a single place.
+   * **Calculated Fields Avoidance:** The database stores `price_per_head` for food and `price_per_day` for halls. Total pricing is dynamically calculated on the backend during the booking process (`Booking.total_price = hall_price + food_total`) before insertion, rather than maintaining static, desynchronized sum fields.
+
+---
+
+## TASK 5: ROLE-BASED ACCESS CONTROL (RBAC) & SECURITY
+**Academic Justification**: Proper access control ensures that actors within the system only interact with the data and actions necessary for their operational role, subscribing to the Principle of Least Privilege (PoLP).
+
+### RBAC Implementation matrix
+The system architecture defines three distinct user personas, enforced by custom Flask decorators (`@token_required`, `@admin_required`, `@staff_required`, `@customer_or_admin`) on the backend API layer.
+
+* **Admin (`A` Prefix):**
+  * Full CRUD (Create, Read, Update, Delete) access. 
+  * Can manipulate Hall data, approve/reject pending bookings, and assign operational tasks to Staff.
+* **Customer (`C` Prefix):**
+  * Execution access limited to their own scope.
+  * Can browse halls, view availability, secure a booking date, and process Mock Payments. They cannot view other customers' bookings.
+* **Staff/Operations (`S` Prefix):**
+  * Restricted logistical access. Requires initial Admin approval before account activation (`is_approved = False` by default).
+  * Can view their assigned tasks (e.g., Catering Setup, Cleaning) for a specific confirmed booking and update their task status to "Completed". 
+
+---
 *Created by Antigravity (Assistant to Senior Lecturer/Engineer)*

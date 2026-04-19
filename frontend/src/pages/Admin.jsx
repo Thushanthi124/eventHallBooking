@@ -271,10 +271,105 @@ const Admin = () => {
                         >
                             💬 Feedback
                         </button>
+                        <button
+                            className={`toggle-btn ${viewMode === 'staff' ? 'active' : ''}`}
+                            onClick={() => setViewMode('staff')}
+                        >
+                            👥 Staff
+                        </button>
                     </div>
                 </div>
 
-                {viewMode === 'feedback' ? (
+                {viewMode === 'staff' ? (
+                    <div className="staff-view">
+                        <h3 style={{ marginBottom: '1rem', color: '#666' }}>Staff Management</h3>
+                        {staffList.length > 0 ? (
+                            <table className="bookings-table">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Role / Type</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {staffList.map(staff => (
+                                        <tr key={staff.id}>
+                                            <td>{staff.username}</td>
+                                            <td>{staff.email}</td>
+                                            <td>
+                                                <span style={{ textTransform: 'capitalize' }}>
+                                                    {staff.role} {staff.staff_type !== 'none' ? `(${staff.staff_type})` : ''}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                {staff.is_approved ? (
+                                                    <span className="status-badge status-confirmed">Active</span>
+                                                ) : (
+                                                    <span className="status-badge status-pending">Pending Approval</span>
+                                                )}
+                                            </td>
+                                            <td>
+                                                {!staff.is_approved && (
+                                                    <div className="action-buttons">
+                                                        <button
+                                                            className="btn-action btn-confirm"
+                                                            onClick={async () => {
+                                                                if (!window.confirm(`Approve ${staff.username}?`)) return;
+                                                                try {
+                                                                    const token = localStorage.getItem('userToken');
+                                                                    const res = await fetch(`http://127.0.0.1:5000/api/admin/users/${staff.id}/approve`, {
+                                                                        method: 'PUT',
+                                                                        headers: { 'Authorization': `Bearer ${token}` }
+                                                                    });
+                                                                    if (res.ok) {
+                                                                        alert("Staff Approved");
+                                                                        fetchStaff();
+                                                                    } else {
+                                                                        alert("Failed");
+                                                                    }
+                                                                } catch (e) { alert("Error"); }
+                                                            }}
+                                                        >
+                                                            Approve
+                                                        </button>
+                                                        <button
+                                                            className="btn-action btn-reject"
+                                                            style={{ marginLeft: '5px' }}
+                                                            onClick={async () => {
+                                                                if (!window.confirm(`Reject ${staff.username}?`)) return;
+                                                                try {
+                                                                    const token = localStorage.getItem('userToken');
+                                                                    const res = await fetch(`http://127.0.0.1:5000/api/admin/users/${staff.id}/reject`, {
+                                                                        method: 'PUT',
+                                                                        headers: { 'Authorization': `Bearer ${token}` }
+                                                                    });
+                                                                    if (res.ok) {
+                                                                        alert("Staff Rejected");
+                                                                        fetchStaff();
+                                                                    } else {
+                                                                        alert("Failed");
+                                                                    }
+                                                                } catch (e) { alert("Error"); }
+                                                            }}
+                                                        >
+                                                            Reject
+                                                        </button>
+                                                    </div>
+                                                )}
+                                                {staff.is_approved && <span style={{ color: '#94a3b8', fontSize: '0.8rem' }}>No actions</span>}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        ) : (
+                            <div className="empty-state">No staff members found.</div>
+                        )}
+                    </div>
+                ) : viewMode === 'feedback' ? (
                     <div className="feedback-view">
                         <h3 style={{ marginBottom: '1rem', color: '#666' }}>Customer Reviews & Suggestions</h3>
                         {feedbackList.length > 0 ? (
@@ -425,7 +520,7 @@ const Admin = () => {
                                 <tr key={booking.id}>
                                     <td>
                                         <div style={{ fontWeight: 600 }}>{booking.user_name}</div>
-                                        <div style={{ fontSize: '0.75rem', color: '#64748b' }}>ID: #{booking.user_id}</div>
+                                        <div style={{ fontSize: '0.75rem', color: '#64748b' }}>ID: {booking.user_id}</div>
                                     </td>
                                     <td>{booking.hall_name}</td>
                                     <td>{new Date(booking.event_date).toLocaleDateString()}</td>

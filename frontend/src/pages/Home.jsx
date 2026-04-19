@@ -46,7 +46,7 @@ const Home = () => {
 
   const FALLBACK_HALLS = [
     {
-      id: 1,
+      id: "H01",
       name: "Grand Ballroom",
       capacity: 500,
       price_per_day: 150000,
@@ -54,7 +54,7 @@ const Home = () => {
       image_url: "/halls/grand_ballroom.png"
     },
     {
-      id: 2,
+      id: "H02",
       name: "Nadsathira Hall",
       capacity: 1000,
       price_per_day: 80000,
@@ -62,7 +62,7 @@ const Home = () => {
       image_url: "/halls/sapphire_hall.png"
     },
     {
-      id: 3,
+      id: "H03",
       name: "Jade Garden",
       capacity: 400,
       price_per_day: 60000,

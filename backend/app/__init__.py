@@ -24,5 +24,8 @@ def create_app(config_class=Config):
 
     from app import routes, models
     app.register_blueprint(routes.bp)
+    
+    from app.scheduler import start_scheduler
+    start_scheduler(app)
 
     return app

@@ -1,22 +1,21 @@
 from app import create_app, db
 from sqlalchemy import text
-from app.models import StaffAssignment
 
 app = create_app()
-with app.app_context():
-    # Update users table
-    try:
-        db.session.execute(text("ALTER TABLE users MODIFY COLUMN role ENUM('customer', 'admin', 'staff') DEFAULT 'customer'"))
-        db.session.execute(text("ALTER TABLE users ADD COLUMN staff_type ENUM('kitchen', 'cleaning', 'waiter', 'none') DEFAULT 'none'"))
-        db.session.commit()
-        print("Updated users table with staff roles.")
-    except Exception as e:
-        db.session.rollback()
-        print(f"Users table update skipped/failed: {e}")
 
-    # Create assignments table
+with app.app_context():
     try:
+        # Create new tables if they don't exist (like staff_leaves)
         db.create_all()
-        print("Assignments table created (if not exists).")
+        print("Ensured all tables are created.")
+        
+        # Alter staff_assignments
+        # We need to add pay_rate and payment_status
+        db.session.execute(text("ALTER TABLE staff_assignments ADD COLUMN pay_rate DECIMAL(10,2) DEFAULT 3000.00;"))
+        db.session.execute(text("ALTER TABLE staff_assignments ADD COLUMN payment_status ENUM('pending', 'paid') DEFAULT 'pending';"))
+        
+        db.session.commit()
+        print("Success! staff_assignments modified on MySQL DB.")
     except Exception as e:
-        print(f"Create all failed: {e}")
+        print("Notice:", e)
+        db.session.rollback()

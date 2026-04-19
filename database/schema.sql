@@ -21,6 +21,14 @@ CREATE TABLE IF NOT EXISTS halls (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS food_packages (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(50) NOT NULL UNIQUE,
+    price_per_head DECIMAL(10, 2) NOT NULL,
+    description TEXT,
+    items TEXT
+);
+
 CREATE TABLE IF NOT EXISTS bookings (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -30,12 +38,13 @@ CREATE TABLE IF NOT EXISTS bookings (
     end_time TIME,
     total_price DECIMAL(10, 2) DEFAULT 0.00,
     payment_status ENUM('pending', 'paid', 'failed', 'refunded') DEFAULT 'pending',
-    food_package VARCHAR(50),
+    food_package_id INT,
     custom_preferences TEXT,
     status ENUM('pending', 'confirmed', 'rejected') DEFAULT 'pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (hall_id) REFERENCES halls(id),
+    FOREIGN KEY (food_package_id) REFERENCES food_packages(id),
     UNIQUE KEY unique_booking (hall_id, event_date, start_time, end_time)
 );
 
@@ -51,7 +60,7 @@ CREATE TABLE IF NOT EXISTS payments (
 
 CREATE TABLE IF NOT EXISTS feedback (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    booking_id INT NOT NULL,
+    booking_id INT, -- Nullable for general feedback
     user_id INT NOT NULL,
     rating INT CHECK (rating >= 1 AND rating <= 5),
     comments TEXT,
